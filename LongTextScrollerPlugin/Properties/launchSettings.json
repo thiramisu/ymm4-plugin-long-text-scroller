@@ -1,0 +1,11 @@
+{
+  "profiles": {
+    "LongTextScrollerPlugin": {
+      "commandName": "Project"
+    },
+    "プロファイル 1": {
+      "commandName": "Executable",
+      "executablePath": "C:\\Applications\\Tools\\YukkuriMovieMaker4\\YukkuriMovieMaker.exe"
+    }
+  }
+}
