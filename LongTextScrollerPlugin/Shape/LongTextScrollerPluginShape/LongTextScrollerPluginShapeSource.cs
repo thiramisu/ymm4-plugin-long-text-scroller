@@ -222,7 +222,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 _ => throw new NotImplementedException()
             };
             var isJustified = AlignmentComboBoxUtil.GetTextAlignment(alignment) == TextAlignment.Justified;
-            if (startLine >= endLine)
+            if (startLine >= endLine || lightweightTextScrollingShapeParameter.Text.Length == 0)
             {
                 text = "";
                 y = 0f;
