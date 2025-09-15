@@ -1,7 +1,7 @@
 ﻿# 「長文軽量スクロール」図形プラグイン
 [![.NET](https://img.shields.io/badge/.NET-9.0-purple.svg)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/thiramisu/ymm4-plugin-long-text-scroller.svg)]
+[![Release](https://img.shields.io/github/v/release/thiramisu/ymm4-plugin-long-text-scroller.svg)](https://github.com/thiramisu/ymm4-plugin-long-text-scroller/releases/tag/v1.0.0)
 ![ロゴ](logo.png)
 
 ## 概要
