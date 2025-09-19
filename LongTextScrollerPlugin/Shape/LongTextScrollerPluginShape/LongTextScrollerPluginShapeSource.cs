@@ -55,7 +55,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         /// <summary>
         /// 描画結果
         /// </summary>
-        public ID2D1Image Output => commandList ?? throw new Exception($"{nameof(commandList)}がnullです。事前にUpdateを呼び出す必要があります。");
+        public ID2D1Image Output => commandList ?? throw new InvalidOperationException($"{nameof(commandList)}がnullです。事前にUpdateを呼び出す必要があります。");
 
         public LongTextScrollerPluginShapeSource(IGraphicsDevicesAndContext devices, LongTextScrollerPluginShapeParameter lightweightTextScrollingShapeParameter)
         {
@@ -116,7 +116,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             {
                 UpdateTextFormat();
                 if (textFormat == null)
-                    throw new NullReferenceException($"{nameof(textFormat)}がnullです。");
+                    throw new InvalidOperationException($"{nameof(textFormat)}がnullです。");
 
                 SetProperty(ref wordWrapping, lightweightTextScrollingShapeParameter.WordWrapping);
                 textFormat.WordWrapping = (WordWrapping)wordWrapping;
@@ -201,7 +201,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         void UpdateTextAndY()
         {
             if (lineStartIndexes == null)
-                throw new NullReferenceException($"{nameof(lineStartIndexes)}がnullです。");
+                throw new InvalidOperationException($"{nameof(lineStartIndexes)}がnullです。");
 
             var absLineHeight = Math.Abs(lineHeight);
             // lineHeight == 0dの場合を考慮して、pxではなく行単位で計算
@@ -210,7 +210,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 ScrollMeasurementUnitComboBoxEnum.Px => scroll / absLineHeight,
                 ScrollMeasurementUnitComboBoxEnum.Line => scroll,
                 ScrollMeasurementUnitComboBoxEnum.FromLine => scroll - 1,
-                _ => throw new NotImplementedException()
+                _ => throw new NotImplementedException($"{nameof(ScrollMeasurementUnitComboBoxEnum)} = {scrollMeasurementUnit}の場合の処理が未実装です。")
             };
             int startLine = Math.Max(1, (int)Math.Floor(scrollLine + (shouldShiftHalfLine ? 0.5d : 1d)));
             int endLine = Math.Min(lineStartIndexes.Length, startLine + lineCount);
@@ -219,7 +219,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 ParagraphAlignment.Near => 0d,
                 ParagraphAlignment.Center => (1d - lineCount) / 2,
                 ParagraphAlignment.Far => 1d - lineCount,
-                _ => throw new NotImplementedException()
+                _ => throw new NotImplementedException($"{nameof(ParagraphAlignment)} = {AlignmentComboBoxUtil.GetParagraphAlignment(alignment)}の場合の処理が未実装です。")
             };
             var isJustified = AlignmentComboBoxUtil.GetTextAlignment(alignment) == TextAlignment.Justified;
             if (startLine >= endLine || lightweightTextScrollingShapeParameter.Text.Length == 0)
@@ -269,7 +269,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         void UpdateCommandList()
         {
             if (brush == null)
-                throw new Exception($"{nameof(brush)}がnullです。");
+                throw new InvalidOperationException($"{nameof(brush)}がnullです。");
 
             var dc = devices.DeviceContext;
 
@@ -293,7 +293,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 TextAlignment.Center => -(float)wordWrappingWidth / 2,
                 TextAlignment.Justified => -(float)wordWrappingWidth / 2,
                 TextAlignment.Trailing => -(float)wordWrappingWidth,
-                _ => throw new NotImplementedException()
+                _ => throw new NotImplementedException($"{nameof(TextAlignment)} = {AlignmentComboBoxUtil.GetTextAlignment(alignment)}の場合の処理が未実装です。")
             };
             var absLineHeight = Math.Abs(lineHeight);
             textLayout.SetLineSpacing(LineSpacingMethod.Uniform, (float)absLineHeight, (float)(baseLinePerSize * fontSize));
