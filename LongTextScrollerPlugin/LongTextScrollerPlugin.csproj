@@ -35,10 +35,6 @@
 		</Reference>
 	</ItemGroup>
 
-	<ItemGroup>
-		<PackageReference Include="System.IO.Hashing" Version="9.0.9" />
-	</ItemGroup>
-
 	<!--Debugビルド後-->
 	<Target Name="PostBuild" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Debug'">
 		<!--YMM4のプラグインフォルダにdllをコピーする-->
@@ -47,6 +43,6 @@
 	<!--Releaseビルド後-->
 	<Target Name="PostBuild2" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">
 		<!-- release.ymme の作成 -->
-		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Compress-Archive -Path @( '$(ProjectDir)Content\LICENSE.txt', '$(ProjectDir)Content\README.txt', '$(ProjectDir)Content\THIRD-PARTY-NOTICES.txt', '$(TargetPath)', '$(NugetPackagesPath)system.io.hashing\9.0.9\lib\net9.0\System.IO.Hashing.dll' ) -DestinationPath '$(ProjectDir)output.zip' -Force; Rename-Item -Path '$(ProjectDir)output.zip' -NewName 'LongTextScrollerPlugin.ymme' -Force&quot;" />
+		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Compress-Archive -Path @( '$(ProjectDir)Content\LICENSE.txt', '$(ProjectDir)Content\README.txt', '$(TargetPath)' ) -DestinationPath '$(ProjectDir)output.zip' -Force; Rename-Item -Path '$(ProjectDir)output.zip' -NewName 'LongTextScrollerPlugin.ymme' -Force&quot;" />
 	</Target>
 </Project>

@@ -1,5 +1,4 @@
-﻿using System.IO.Hashing;
-using System.Numerics;
+﻿using System.Numerics;
 using System.Runtime.InteropServices;
 using Vortice.Direct2D1;
 using Vortice.DirectWrite;
@@ -15,7 +14,6 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         readonly LongTextScrollerPluginShapeParameter lightweightTextScrollingShapeParameter;
         readonly DisposeCollector disposer = new();
         readonly IDWriteFactory factory;
-        private readonly XxHash3 hasher = new();
 
         ID2D1CommandList? commandList;
 
@@ -27,25 +25,23 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
         // キャッシュ比較用
         bool isFirst = false;
+        // Animation
         double scroll;
-        ScrollMeasurementUnitComboBoxEnum scrollMeasurementUnit;
         double lineHeight;
-        int lineCount;
-        bool shouldShiftHalfLine;
-        ulong hashedText;
-        string fontWin32FamilyName;
+        double wordWrappingWidth;
+        // Font Data
         string fontFamilyName;
         FontWeight fontWeightOfSelectedFont;
-        FontWeight fontWeight;
         FontStyle fontStyleOfSelectedFont;
-        FontStyle fontStyle;
-        float fontSize;
-        WordWrappingComboBoxEnum wordWrapping;
-        double wordWrappingWidth;
-        AlignmentComboBoxEnum alignment;
-        System.Windows.Media.Color fontColor;
         double baseLinePerSize;
-        //bool isDebug;
+
+        bool shouldUpdateFontData = true;
+        bool shouldUpdateTextFormat = true;
+        bool shouldUpdateWordWrapping = true;
+        bool shouldUpdateAlignment = true;
+        bool shouldUpdateLineIndexes = true;
+        bool shouldUpdateTextAndY = true;
+        bool shouldUpdateBrush = true;
 
         /// <summary>
         /// 両端揃えのために追加する空白文字。
@@ -61,11 +57,11 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         {
             this.devices = devices;
             this.lightweightTextScrollingShapeParameter = lightweightTextScrollingShapeParameter;
+            lightweightTextScrollingShapeParameter.OnChanged += OnParameterChanged;
 
             factory = DWrite.DWriteCreateFactory<IDWriteFactory>();
             disposer.Collect(factory);
 
-            fontWin32FamilyName = "";
             fontFamilyName = "";
             text = "";
         }
@@ -76,11 +72,29 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         /// <param name="timelineItemSourceDescription"></param>
         public void Update(TimelineItemSourceDescription timelineItemSourceDescription)
         {
+            var frame = timelineItemSourceDescription.ItemPosition.Frame;
+            var length = timelineItemSourceDescription.ItemDuration.Frame;
+            var fps = timelineItemSourceDescription.FPS;
+
+            UpdateFontDataIfNeeded();
+            UpdateTextFormatIfNeeded();
+
+            shouldUpdateLineIndexes |= SetProperty(ref wordWrappingWidth, lightweightTextScrollingShapeParameter.WordWrappingWidth.GetValue(frame, length, fps));
+            UpdateLineStartIndexesIfNeeded();
+
+            shouldUpdateTextAndY |= SetProperty(ref scroll, lightweightTextScrollingShapeParameter.Scroll.GetValue(frame, length, fps));
+            shouldUpdateTextAndY |= SetProperty(ref lineHeight, lightweightTextScrollingShapeParameter.LineHeight.GetValue(frame, length, fps));
+            var hasChanged = shouldUpdateTextAndY | shouldUpdateBrush;
+            UpdateTextAndYIfNeeded();
+
+            UpdateBrushIfNeeded();
+
             //パラメーターが変わっていない場合は何もしない
-            if (!UpdateCacheIfNeeded(timelineItemSourceDescription) && !isFirst)
+            if (!hasChanged && !isFirst)
                 return;
 
             isFirst = false;
+
             UpdateCommandList();
         }
 
@@ -89,107 +103,114 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             disposer.DisposeAndClear();
         }
 
-        bool UpdateCacheIfNeeded(TimelineItemSourceDescription timelineItemSourceDescription)
+        void OnParameterChanged(string propertyName)
         {
-            var frame = timelineItemSourceDescription.ItemPosition.Frame;
-            var length = timelineItemSourceDescription.ItemDuration.Frame;
-            var fps = timelineItemSourceDescription.FPS;
-
-            var shouldUpdateTextFormat = false;
-            //shouldUpdateTextFormat |= SetProperty(ref isDebug, lightweightTextScrollingShapeParameter.IsDebug);
-            shouldUpdateTextFormat |= SetProperty(ref fontSize, lightweightTextScrollingShapeParameter.FontSize);
-            if (SetProperty(ref fontWin32FamilyName, lightweightTextScrollingShapeParameter.FontWin32FamilyName))
+            switch (propertyName)
             {
-                shouldUpdateTextFormat = true;
-                var font = FontGetter.GetFontByWin32FamilyName(factory, fontWin32FamilyName);
-                fontFamilyName = font.FontFamily.FamilyNames.GetString(0);
-                fontWeightOfSelectedFont = font.Weight;
-                fontStyleOfSelectedFont = font.Style;
-
-                var metrics = font.Metrics;
-                baseLinePerSize = metrics.Ascent / metrics.DesignUnitsPerEm;
-            }
-            shouldUpdateTextFormat |= SetProperty(ref fontWeight, lightweightTextScrollingShapeParameter.IsBold ? FontWeight.Bold : fontWeightOfSelectedFont);
-            shouldUpdateTextFormat |= SetProperty(ref fontStyle, lightweightTextScrollingShapeParameter.IsItalic ? FontStyle.Italic : fontStyleOfSelectedFont);
-
-            if (shouldUpdateTextFormat || textFormat == null)
-            {
-                UpdateTextFormat();
-                if (textFormat == null)
-                    throw new InvalidOperationException($"{nameof(textFormat)}がnullです。");
-
-                SetProperty(ref wordWrapping, lightweightTextScrollingShapeParameter.WordWrapping);
-                textFormat.WordWrapping = (WordWrapping)wordWrapping;
-
-                SetProperty(ref alignment, lightweightTextScrollingShapeParameter.Alignment);
-                textFormat.TextAlignment = AlignmentComboBoxUtil.GetTextAlignment(alignment);
-            }
-            else
-            {
-                if (SetProperty(ref wordWrapping, lightweightTextScrollingShapeParameter.WordWrapping))
-                {
+                case nameof(lightweightTextScrollingShapeParameter.FontWin32FamilyName):
+                    //case nameof(lightweightTextScrollingShapeParameter.IsDebug):
+                    shouldUpdateFontData = true;
+                    break;
+                case nameof(lightweightTextScrollingShapeParameter.FontSize):
+                case nameof(lightweightTextScrollingShapeParameter.IsBold):
+                case nameof(lightweightTextScrollingShapeParameter.IsItalic):
                     shouldUpdateTextFormat = true;
-                    textFormat.WordWrapping = (WordWrapping)wordWrapping;
-                }
-                if (SetProperty(ref alignment, lightweightTextScrollingShapeParameter.Alignment))
-                {
-                    shouldUpdateTextFormat = true;
-                    textFormat.TextAlignment = AlignmentComboBoxUtil.GetTextAlignment(alignment);
-                }
+                    break;
+                case nameof(lightweightTextScrollingShapeParameter.WordWrapping):
+                    shouldUpdateWordWrapping = true;
+                    break;
+                case nameof(lightweightTextScrollingShapeParameter.Alignment):
+                    shouldUpdateAlignment = true;
+                    break;
+                case nameof(lightweightTextScrollingShapeParameter.Text):
+                    shouldUpdateLineIndexes = true;
+                    break;
+                case nameof(lightweightTextScrollingShapeParameter.LineCount):
+                case nameof(lightweightTextScrollingShapeParameter.ShouldShiftHalfLine):
+                case nameof(lightweightTextScrollingShapeParameter.ScrollMeasurementUnit):
+                    shouldUpdateTextAndY = true;
+                    break;
+                case nameof(lightweightTextScrollingShapeParameter.FontColor):
+                    shouldUpdateBrush = true;
+                    break;
             }
-
-            var shouldUpdateLineIndexes = false;
-            shouldUpdateLineIndexes |= shouldUpdateTextFormat;
-            shouldUpdateLineIndexes |= SetProperty(ref hashedText, GetXxHash3FromText(lightweightTextScrollingShapeParameter.Text.AsSpan()));
-            shouldUpdateLineIndexes |= SetProperty(ref fontSize, lightweightTextScrollingShapeParameter.FontSize);
-            shouldUpdateLineIndexes |= SetProperty(ref wordWrappingWidth, lightweightTextScrollingShapeParameter.WordWrappingWidth.GetValue(frame, length, fps));
-            if (shouldUpdateLineIndexes || lineStartIndexes == null)
-            {
-                UpdateLineStartIndexes();
-            }
-
-            var hasChanged = false;
-            hasChanged |= shouldUpdateLineIndexes;
-            hasChanged |= SetProperty(ref scroll, lightweightTextScrollingShapeParameter.Scroll.GetValue(frame, length, fps));
-            hasChanged |= SetProperty(ref scrollMeasurementUnit, lightweightTextScrollingShapeParameter.ScrollMeasurementUnit);
-            hasChanged |= SetProperty(ref lineHeight, lightweightTextScrollingShapeParameter.LineHeight.GetValue(frame, length, fps));
-            hasChanged |= SetProperty(ref shouldShiftHalfLine, lightweightTextScrollingShapeParameter.ShouldShiftHalfLine);
-            hasChanged |= SetProperty(ref lineCount, lightweightTextScrollingShapeParameter.LineCount);
-            if (hasChanged)
-            {
-                UpdateTextAndY();
-            }
-
-            if (SetProperty(ref fontColor, lightweightTextScrollingShapeParameter.FontColor) || brush == null)
-            {
-                hasChanged = true;
-                UpdateBrush();
-            }
-
-            return hasChanged;
         }
 
-        void UpdateTextFormat()
+        void UpdateFontDataIfNeeded()
         {
+            if (!shouldUpdateFontData)
+            {
+                return;
+            }
+            shouldUpdateFontData = false;
+
+            shouldUpdateTextFormat = true;
+
+            var font = FontGetter.GetFontByWin32FamilyName(factory, lightweightTextScrollingShapeParameter.FontWin32FamilyName);
+            fontFamilyName = font.FontFamily.FamilyNames.GetString(0);
+            fontWeightOfSelectedFont = font.Weight;
+            fontStyleOfSelectedFont = font.Style;
+
+            var metrics = font.Metrics;
+            baseLinePerSize = metrics.Ascent / metrics.DesignUnitsPerEm;
+        }
+        void UpdateTextFormatIfNeeded()
+        {
+            if (!shouldUpdateTextFormat && textFormat != null)
+            {
+                if (shouldUpdateWordWrapping)
+                {
+                    shouldUpdateWordWrapping = false;
+
+                    shouldUpdateLineIndexes = true;
+
+                    textFormat.WordWrapping = (WordWrapping)lightweightTextScrollingShapeParameter.WordWrapping;
+                }
+                if (shouldUpdateAlignment)
+                {
+                    shouldUpdateAlignment = false;
+
+                    shouldUpdateLineIndexes = true;
+
+                    textFormat.TextAlignment = AlignmentComboBoxUtil.GetTextAlignment(lightweightTextScrollingShapeParameter.Alignment);
+                }
+                return;
+            }
+            shouldUpdateTextFormat = false;
+            shouldUpdateWordWrapping = false;
+            shouldUpdateAlignment = false;
+
+            shouldUpdateLineIndexes = true;
+
             if (textFormat != null)
             {
                 disposer.RemoveAndDispose(ref textFormat);
             }
             textFormat = factory.CreateTextFormat(
                 fontFamilyName: fontFamilyName,
-                fontWeight: fontWeight,
-                fontStyle: fontStyle,
-                fontSize: fontSize
+                fontWeight: lightweightTextScrollingShapeParameter.IsBold ? FontWeight.Bold : fontWeightOfSelectedFont,
+                fontStyle: lightweightTextScrollingShapeParameter.IsItalic ? FontStyle.Italic : fontStyleOfSelectedFont,
+                fontSize: lightweightTextScrollingShapeParameter.FontSize
             );
             disposer.Collect(textFormat);
+            textFormat.WordWrapping = (WordWrapping)lightweightTextScrollingShapeParameter.WordWrapping;
+            textFormat.TextAlignment = AlignmentComboBoxUtil.GetTextAlignment(lightweightTextScrollingShapeParameter.Alignment);
         }
 
-        void UpdateLineStartIndexes()
+        void UpdateLineStartIndexesIfNeeded()
         {
+            if (!shouldUpdateLineIndexes && lineStartIndexes != null)
+            {
+                return;
+            }
+            shouldUpdateLineIndexes = false;
+
+            shouldUpdateTextAndY = true;
+
             using var textLayout = factory.CreateTextLayout(
                 text: lightweightTextScrollingShapeParameter.Text,
                 textFormat: textFormat,
-                maxWidth: wordWrapping == WordWrappingComboBoxEnum.NoWrap ? 0f : (float)wordWrappingWidth,
+                maxWidth: lightweightTextScrollingShapeParameter.WordWrapping == WordWrappingComboBoxEnum.NoWrap ? 0f : (float)wordWrappingWidth,
                 maxHeight: float.MaxValue
             );
             // 1行の文字数が分かれば良いのでLineSpacingは不要
@@ -198,21 +219,29 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             lineStartIndexes = [0, .. textLayout.LineMetrics.Select(line => sum += line.Length)];
         }
 
-        void UpdateTextAndY()
+        void UpdateTextAndYIfNeeded()
         {
+            if (!shouldUpdateTextAndY)
+            {
+                return;
+            }
+            shouldUpdateTextAndY = false;
+
             if (lineStartIndexes == null)
                 throw new InvalidOperationException($"{nameof(lineStartIndexes)}がnullです。");
 
             var absLineHeight = Math.Abs(lineHeight);
             // lineHeight == 0dの場合を考慮して、pxではなく行単位で計算
-            var scrollLine = scrollMeasurementUnit switch
+            var scrollLine = lightweightTextScrollingShapeParameter.ScrollMeasurementUnit switch
             {
                 ScrollMeasurementUnitComboBoxEnum.Px => scroll / absLineHeight,
                 ScrollMeasurementUnitComboBoxEnum.Line => scroll,
                 ScrollMeasurementUnitComboBoxEnum.FromLine => scroll - 1,
-                _ => throw new NotImplementedException($"{nameof(ScrollMeasurementUnitComboBoxEnum)} = {scrollMeasurementUnit}の場合の処理が未実装です。")
+                _ => throw new NotImplementedException($"{nameof(ScrollMeasurementUnitComboBoxEnum)} = {lightweightTextScrollingShapeParameter.ScrollMeasurementUnit}の場合の処理が未実装です。")
             };
-            int startLine = Math.Max(1, (int)Math.Floor(scrollLine + (shouldShiftHalfLine ? 0.5d : 1d)));
+            var alignment = lightweightTextScrollingShapeParameter.Alignment;
+            var lineCount = lightweightTextScrollingShapeParameter.LineCount;
+            int startLine = Math.Max(1, (int)Math.Floor(scrollLine + (lightweightTextScrollingShapeParameter.ShouldShiftHalfLine ? 0.5d : 1d)));
             int endLine = Math.Min(lineStartIndexes.Length, startLine + lineCount);
             double paragraphAlignment = AlignmentComboBoxUtil.GetParagraphAlignment(alignment) switch
             {
@@ -249,18 +278,24 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             }
         }
 
-        void UpdateBrush()
+        void UpdateBrushIfNeeded()
         {
+            if (!shouldUpdateBrush && brush != null)
+            {
+                return;
+            }
+            shouldUpdateBrush = false;
+
             if (brush != null)
             {
                 disposer.RemoveAndDispose(ref brush);
             }
             brush = devices.DeviceContext.CreateSolidColorBrush(
                 new Color4(
-                    (float)fontColor.R / 255,
-                    (float)fontColor.G / 255,
-                    (float)fontColor.B / 255,
-                    (float)fontColor.A / 255
+                    (float)lightweightTextScrollingShapeParameter.FontColor.R / 255,
+                    (float)lightweightTextScrollingShapeParameter.FontColor.G / 255,
+                    (float)lightweightTextScrollingShapeParameter.FontColor.B / 255,
+                    (float)lightweightTextScrollingShapeParameter.FontColor.A / 255
                 )
             );
             disposer.Collect(brush);
@@ -284,33 +319,25 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             using var textLayout = factory.CreateTextLayout(
                 text: text,
                 textFormat: textFormat,
-                maxWidth: wordWrapping == WordWrappingComboBoxEnum.NoWrap ? 0f : (float)wordWrappingWidth,
+                maxWidth: lightweightTextScrollingShapeParameter.WordWrapping == WordWrappingComboBoxEnum.NoWrap ? 0f : (float)wordWrappingWidth,
                 maxHeight: float.MaxValue
             );
-            var x = AlignmentComboBoxUtil.GetTextAlignment(alignment) switch
+            var x = AlignmentComboBoxUtil.GetTextAlignment(lightweightTextScrollingShapeParameter.Alignment) switch
             {
                 TextAlignment.Leading => 0f,
                 TextAlignment.Center => -(float)wordWrappingWidth / 2,
                 TextAlignment.Justified => -(float)wordWrappingWidth / 2,
                 TextAlignment.Trailing => -(float)wordWrappingWidth,
-                _ => throw new NotImplementedException($"{nameof(TextAlignment)} = {AlignmentComboBoxUtil.GetTextAlignment(alignment)}の場合の処理が未実装です。")
+                _ => throw new NotImplementedException($"{nameof(TextAlignment)} = {AlignmentComboBoxUtil.GetTextAlignment(lightweightTextScrollingShapeParameter.Alignment)}の場合の処理が未実装です。")
             };
             var absLineHeight = Math.Abs(lineHeight);
-            textLayout.SetLineSpacing(LineSpacingMethod.Uniform, (float)absLineHeight, (float)(baseLinePerSize * fontSize));
+            textLayout.SetLineSpacing(LineSpacingMethod.Uniform, (float)absLineHeight, (float)(baseLinePerSize * lightweightTextScrollingShapeParameter.FontSize));
             // SetCharacterSpacing(); を使いたいがIDWriteTextLayout1に対応する方法が不明なので諦め
             dc.DrawTextLayout(new Vector2(x, y), textLayout, brush);
 
             dc.EndDraw();
             dc.Target = null;//Targetは必ずnullに戻す。
             commandList.Close();//CommandListはEndDraw()の後に必ずClose()を呼んで閉じる必要がある
-        }
-        private ulong GetXxHash3FromText(ReadOnlySpan<char> text)
-        {
-            hasher.Append(MemoryMarshal.AsBytes(text));
-            Span<byte> hashBytes = stackalloc byte[8];
-            hasher.GetHashAndReset(hashBytes);
-
-            return BitConverter.ToUInt64(hashBytes);
         }
 
         /// <returns>値が変更された場合は true、それ以外は false。</returns>
