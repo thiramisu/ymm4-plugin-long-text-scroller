@@ -1,7 +1,7 @@
 ﻿# 「長文軽量スクロール」図形プラグイン
 [![.NET](https://img.shields.io/badge/.NET-9.0-purple.svg)](#)
 [![License](https://img.shields.io/badge/license-MIT-blue.svg)](LICENSE)
-[![Release](https://img.shields.io/github/v/release/thiramisu/ymm4-plugin-long-text-scroller.svg)](https://github.com/thiramisu/ymm4-plugin-long-text-scroller/releases/tag/v1.0.0)
+[![Release](https://img.shields.io/github/v/release/thiramisu/ymm4-plugin-long-text-scroller.svg)](https://github.com/thiramisu/ymm4-plugin-long-text-scroller/releases/latest)
 ![ロゴ](logo.png)
 
 ## 概要
@@ -15,6 +15,12 @@
 
 ## インストール方法
 YMM4内の[ツール]>[プラグインポータル]をご利用ください。
+または、以下の手順で、手動でのインストールもできます。
+- 手動インストール手順
+  1. 以下のURLの Assets から LongTextScrollerPlugin.ymme をダウンロード
+　　　　https://github.com/thiramisu/ymm4-plugin-long-text-scroller/releases/latest
+  1. 保存した.ymmeファイルをYMM4のタイムライン上にドラッグ＆ドロップ
+
 
 ## 設定項目
 - スクロール:
@@ -54,9 +60,9 @@ YMM4内の[ツール]>[プラグインポータル]をご利用ください。
 両端揃えの最終行も両端揃えにしたい場合、適当な文字（ああああなど）を表示行数外に続けて書くと両端揃えになります。
 
 ## 実装の雰囲気解説
-+ 描画内容の位置を計算（描画はまだしない）
-+ 必要部分の文字列だけを抜き出す
-+ 抜き出した文字列を描画
+1. 描画内容の位置を計算（描画はまだしない）
+1. 必要部分の文字列だけを抜き出す
+1. 抜き出した文字列を描画
 
 ## 免責事項
 本プラグインの使用によって生じたいかなる損害・トラブルについても、<br>
@@ -72,5 +78,10 @@ X：[@tiramisu_oTATo](https://x.com/tiramisu_oTATo)
 詳細は LICENSE.txt をご確認ください。
 
 ## 更新履歴
+- v1.1.1 (2025-09-25)<br>
+    README.txt を改善<br>
+    内部データの更新判定ロジックを、自力実装から既存機能を活用する方式に
+- v1.1.0 (2025-09-24)<br>
+    内部データの保存方式の見直しに伴い、System.IO.Hashingへの依存が不要になったので削除
 - v1.0.0 (2025-09-16)<br>
     初回リリース
