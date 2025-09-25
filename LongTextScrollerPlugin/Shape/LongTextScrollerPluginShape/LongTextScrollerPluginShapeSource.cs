@@ -1,4 +1,5 @@
-﻿using System.Numerics;
+﻿using System.ComponentModel;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using Vortice.Direct2D1;
 using Vortice.DirectWrite;
@@ -57,7 +58,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         {
             this.devices = devices;
             this.lightweightTextScrollingShapeParameter = lightweightTextScrollingShapeParameter;
-            lightweightTextScrollingShapeParameter.OnChanged += OnParameterChanged;
+            lightweightTextScrollingShapeParameter.PropertyChanged += OnParameterChanged;
 
             factory = DWrite.DWriteCreateFactory<IDWriteFactory>();
             disposer.Collect(factory);
@@ -103,9 +104,9 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             disposer.DisposeAndClear();
         }
 
-        void OnParameterChanged(string propertyName)
+        void OnParameterChanged(object? _, PropertyChangedEventArgs e)
         {
-            switch (propertyName)
+            switch (e.PropertyName)
             {
                 case nameof(lightweightTextScrollingShapeParameter.FontWin32FamilyName):
                     //case nameof(lightweightTextScrollingShapeParameter.IsDebug):

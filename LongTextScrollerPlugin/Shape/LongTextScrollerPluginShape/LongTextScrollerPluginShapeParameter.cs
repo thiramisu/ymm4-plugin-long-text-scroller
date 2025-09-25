@@ -82,8 +82,6 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         public bool IsItalic { get => isItalic; set => Set(ref isItalic, value); }
         bool isItalic = false;
 
-        public event Action<string>? OnChanged;
-
         // for debug
         //[Display(Name = "デバッグ用", Description = "デバッグ用")]
         //[ToggleSlider]
@@ -158,16 +156,6 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         protected override void SaveSharedData(SharedDataStore store)
         {
             store.Save(new SharedData(this));
-        }
-
-        public bool Set<T>(ref T field, T value, [CallerMemberName] string name = "")
-        {
-            if (EqualityComparer<T>.Default.Equals(field, value))
-                return false;
-
-            base.Set(ref field, value, name);
-            OnChanged?.Invoke(name);
-            return true;
         }
 
         /// <summary>
