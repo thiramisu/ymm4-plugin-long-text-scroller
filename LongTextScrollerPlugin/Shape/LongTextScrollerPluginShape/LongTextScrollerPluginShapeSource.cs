@@ -6,6 +6,7 @@ using Vortice.DirectWrite;
 using Vortice.Mathematics;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Player.Video;
+using YukkuriMovieMaker.Settings;
 
 namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 {
@@ -31,9 +32,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         double lineHeight;
         double wordWrappingWidth;
         // Font Data
-        string fontFamilyName;
-        FontWeight fontWeightOfSelectedFont;
-        FontStyle fontStyleOfSelectedFont;
+        Font? font;
         double baseLinePerSize;
         float TextAlignmentRatio => lightweightTextScrollingShapeParameter.TextAlignment switch
         {
@@ -71,7 +70,6 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             factory = DWrite.DWriteCreateFactory<IDWriteFactory1>();
             disposer.Collect(factory);
 
-            fontFamilyName = "";
             text = "";
         }
 
@@ -159,12 +157,9 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
             shouldUpdateTextFormat = true;
 
-            var font = FontGetter.GetFontByWin32FamilyName(factory, lightweightTextScrollingShapeParameter.FontWin32FamilyName);
-            fontFamilyName = font.FontFamily.FamilyNames.GetString(0);
-            fontWeightOfSelectedFont = font.Weight;
-            fontStyleOfSelectedFont = font.Style;
+            font = FontGetter.GetFont(lightweightTextScrollingShapeParameter.FontWin32FamilyName);
 
-            var metrics = font.Metrics;
+            var metrics = FontGetter.GetIDWriteFont(factory, font).Metrics;
             baseLinePerSize = metrics.Ascent / metrics.DesignUnitsPerEm;
         }
         void UpdateTextFormatIfNeeded()
@@ -195,14 +190,16 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
             shouldUpdateLineIndexes = true;
 
+            if (font == null)
+                throw new InvalidOperationException($"{nameof(font)} is null");
             if (textFormat != null)
             {
                 disposer.RemoveAndDispose(ref textFormat);
             }
             textFormat = factory.CreateTextFormat(
-                fontFamilyName: fontFamilyName,
-                fontWeight: lightweightTextScrollingShapeParameter.IsBold ? FontWeight.Bold : fontWeightOfSelectedFont,
-                fontStyle: lightweightTextScrollingShapeParameter.IsItalic ? FontStyle.Italic : fontStyleOfSelectedFont,
+                fontFamilyName: font.CanonicalFontName,
+                fontWeight: lightweightTextScrollingShapeParameter.IsBold ? Vortice.DirectWrite.FontWeight.Bold : (Vortice.DirectWrite.FontWeight)font.CanonicalFontWeight,
+                fontStyle: lightweightTextScrollingShapeParameter.IsItalic ? Vortice.DirectWrite.FontStyle.Italic : (Vortice.DirectWrite.FontStyle)font.CanonicalFontStyle,
                 fontSize: lightweightTextScrollingShapeParameter.FontSize
             ).QueryInterface<IDWriteTextFormat1>();
             disposer.Collect(textFormat);
