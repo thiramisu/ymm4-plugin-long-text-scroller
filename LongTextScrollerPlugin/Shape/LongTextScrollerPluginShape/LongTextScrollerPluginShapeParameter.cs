@@ -25,7 +25,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
         [Display(Name = "行の高さ", Description = "行の高さ。\r\nアニメーションする際は、[スクロール単位]を[行]のどちらかに（[px]にすると行の高さが0pxの場合に何行目を描画すべきかが求められず描画できないため）、\r\n[折り返し]を[折り返さない]か[文字単位で折り返す]に（他だとアルゴリズムの関係で0を跨いだ際に改行位置が変わるため）することをオススメします。")]
         [AnimationSlider("F1", "px", -500, 500)]
-        public Animation LineHeight { get; } = new Animation(34, -100_000, 100_000);
+        public Animation LineHeight { get; } = new Animation(34, YMM4Constants.VerySmallValue, YMM4Constants.VeryLargeValue);
 
         [Display(Name = "表示行数", Description = "表示行数")]
         [TextBoxSlider("F0", "", 1, 10)]
@@ -52,14 +52,14 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         [Display(Name = "サイズ", Description = "文字の大きさ")]
         [TextBoxSlider("F1", "px", 1f, 50f)]
         [DefaultValue(34f)]
-        [Range(1f, 100_000f)]
+        [Range(1f, YMM4Constants.VeryLargeValue)]
         public float FontSize { get => fontSize; set => Set(ref fontSize, value); }
         float fontSize = 34f;
 
         [Display(Name = "文字間隔", Description = "文字と文字の間隔")]
         [TextBoxSlider("F1", "px", -100f, 100f)]
         [DefaultValue(0f)]
-        [Range(-100_000f, 100_000f)]
+        [Range(YMM4Constants.VerySmallValue, YMM4Constants.VeryLargeValue)]
         public float CharacterSpacing { get => characterSpacing; set => Set(ref characterSpacing, value); }
         float characterSpacing = 0f;
 
@@ -70,7 +70,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
         [Display(Name = "折り返し幅", Description = "テキストを折り返す幅")]
         [AnimationSlider("F1", "px", 0, 2000)]
-        public Animation WordWrappingWidth { get; } = new Animation(1920, 0, 100_000);
+        public Animation WordWrappingWidth { get; } = new Animation(1920, 0, YMM4Constants.VeryLargeValue);
 
         [Display(Name = "文字揃え", Description = "文字揃え")]
         [EnumComboBox]
@@ -178,7 +178,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         {
             public Animation Scroll { get; } = new Animation(0, -1_000_000, 1_000_000);
             public ScrollMeasurementUnitComboBoxEnum ScrollMeasurementUnit { get; }
-            public Animation LineHeight { get; } = new Animation(34, -100, 100_000);
+            public Animation LineHeight { get; } = new Animation(34, -100, YMM4Constants.VeryLargeValue);
             public int LineCount { get; }
             public bool ShouldShiftHalfLine { get; }
             public string Text { get; }
@@ -186,7 +186,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             public float FontSize { get; }
 
             public WordWrappingComboBoxEnum WordWrapping { get; }
-            public Animation WordWrappingWidth { get; } = new Animation(1920, 0, 100_000);
+            public Animation WordWrappingWidth { get; } = new Animation(1920, 0, YMM4Constants.VeryLargeValue);
             public AlignmentComboBoxEnum Alignment { get; }
             public Color FontColor { get; }
             public bool IsBold { get; }
