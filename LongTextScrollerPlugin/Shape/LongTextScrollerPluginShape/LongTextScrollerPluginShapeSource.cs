@@ -173,7 +173,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
                     shouldUpdateLineIndexes = true;
 
-                    textFormat.TextAlignment = AlignmentComboBoxUtil.GetTextAlignment(lightweightTextScrollingShapeParameter.Alignment);
+                    textFormat.TextAlignment = lightweightTextScrollingShapeParameter.TextAlignment;
                 }
                 return;
             }
@@ -195,7 +195,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             );
             disposer.Collect(textFormat);
             textFormat.WordWrapping = (WordWrapping)lightweightTextScrollingShapeParameter.WordWrapping;
-            textFormat.TextAlignment = AlignmentComboBoxUtil.GetTextAlignment(lightweightTextScrollingShapeParameter.Alignment);
+            textFormat.TextAlignment = lightweightTextScrollingShapeParameter.TextAlignment;
         }
 
         void UpdateLineStartIndexesIfNeeded()
@@ -235,18 +235,17 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 ScrollMeasurementUnitComboBoxEnum.FromLine => scroll - 1,
                 _ => throw new NotImplementedException($"{nameof(ScrollMeasurementUnitComboBoxEnum)} = {lightweightTextScrollingShapeParameter.ScrollMeasurementUnit}の場合の処理が未実装です。")
             };
-            var alignment = lightweightTextScrollingShapeParameter.Alignment;
             var lineCount = lightweightTextScrollingShapeParameter.LineCount;
             int startLine = Math.Max(1, (int)Math.Floor(scrollLine + (lightweightTextScrollingShapeParameter.ShouldShiftHalfLine ? 0.5d : 1d)));
             int endLine = Math.Min(lineStartIndexes.Length, startLine + lineCount);
-            double paragraphAlignment = AlignmentComboBoxUtil.GetParagraphAlignment(alignment) switch
+            double paragraphAlignment = lightweightTextScrollingShapeParameter.ParagraphAlignment switch
             {
                 ParagraphAlignment.Near => 0d,
                 ParagraphAlignment.Center => (1d - lineCount) / 2,
                 ParagraphAlignment.Far => 1d - lineCount,
-                _ => throw new NotImplementedException($"{nameof(ParagraphAlignment)} = {AlignmentComboBoxUtil.GetParagraphAlignment(alignment)}の場合の処理が未実装です。")
+                _ => throw new NotImplementedException($"{nameof(ParagraphAlignment)} = {lightweightTextScrollingShapeParameter.ParagraphAlignment}の場合の処理が未実装です。")
             };
-            var isJustified = AlignmentComboBoxUtil.GetTextAlignment(alignment) == TextAlignment.Justified;
+            var isJustified = lightweightTextScrollingShapeParameter.TextAlignment == TextAlignment.Justified;
             if (startLine >= endLine || lightweightTextScrollingShapeParameter.Text.Length == 0)
             {
                 text = "";
@@ -313,13 +312,13 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             dc.Clear(null);
 
             using var textLayout = CreateTextLayout(text);
-            var x = AlignmentComboBoxUtil.GetTextAlignment(lightweightTextScrollingShapeParameter.Alignment) switch
+            var x = lightweightTextScrollingShapeParameter.TextAlignment switch
             {
                 TextAlignment.Leading => 0f,
                 TextAlignment.Center => -(float)wordWrappingWidth / 2,
                 TextAlignment.Justified => -(float)wordWrappingWidth / 2,
                 TextAlignment.Trailing => -(float)wordWrappingWidth,
-                _ => throw new NotImplementedException($"{nameof(TextAlignment)} = {AlignmentComboBoxUtil.GetTextAlignment(lightweightTextScrollingShapeParameter.Alignment)}の場合の処理が未実装です。")
+                _ => throw new NotImplementedException($"{nameof(TextAlignment)} = {lightweightTextScrollingShapeParameter.TextAlignment}の場合の処理が未実装です。")
             };
             var absLineHeight = Math.Abs(lineHeight);
             textLayout.SetLineSpacing(LineSpacingMethod.Uniform, (float)absLineHeight, (float)(baseLinePerSize * lightweightTextScrollingShapeParameter.FontSize));

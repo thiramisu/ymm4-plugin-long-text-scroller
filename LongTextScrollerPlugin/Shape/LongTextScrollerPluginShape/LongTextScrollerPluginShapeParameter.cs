@@ -2,6 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using Vortice.DirectWrite;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Controls;
 using YukkuriMovieMaker.Exo;
@@ -89,6 +90,9 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         //[ToggleSlider]
         //public bool IsDebug { get => isDebug; set => Set(ref isDebug, value); }
         //bool isDebug = false;
+
+        public TextAlignment TextAlignment => AlignmentComboBoxUtil.GetTextAlignment(Alignment);
+        public ParagraphAlignment ParagraphAlignment => AlignmentComboBoxUtil.GetParagraphAlignment(Alignment);
 
         //必ず引数なしのコンストラクタを定義してください。
         //これがないとプロジェクトファイルの読み込みに失敗します。
