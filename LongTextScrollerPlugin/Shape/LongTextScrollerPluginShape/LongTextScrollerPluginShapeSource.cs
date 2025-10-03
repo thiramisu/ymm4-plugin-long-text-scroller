@@ -14,12 +14,12 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         readonly IGraphicsDevicesAndContext devices;
         readonly LongTextScrollerPluginShapeParameter lightweightTextScrollingShapeParameter;
         readonly DisposeCollector disposer = new();
-        readonly IDWriteFactory factory;
+        readonly IDWriteFactory1 factory;
 
         ID2D1CommandList? commandList;
 
         int[]? lineStartIndexes;
-        IDWriteTextFormat? textFormat;
+        IDWriteTextFormat1? textFormat;
         ID2D1SolidColorBrush? brush;
         string text;
         float y;
@@ -35,6 +35,14 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         FontWeight fontWeightOfSelectedFont;
         FontStyle fontStyleOfSelectedFont;
         double baseLinePerSize;
+        float TextAlignmentRatio => lightweightTextScrollingShapeParameter.TextAlignment switch
+        {
+            TextAlignment.Leading => 0f,
+            TextAlignment.Center => 0.5f,
+            TextAlignment.Justified => 0.5f,
+            TextAlignment.Trailing => 1f,
+            _ => throw new NotImplementedException($"{nameof(TextAlignment)} = {lightweightTextScrollingShapeParameter.TextAlignment}の場合の処理が未実装です。")
+        };
 
         bool shouldUpdateFontData = true;
         bool shouldUpdateTextFormat = true;
@@ -60,7 +68,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             this.lightweightTextScrollingShapeParameter = lightweightTextScrollingShapeParameter;
             lightweightTextScrollingShapeParameter.PropertyChanged += OnParameterChanged;
 
-            factory = DWrite.DWriteCreateFactory<IDWriteFactory>();
+            factory = DWrite.DWriteCreateFactory<IDWriteFactory1>();
             disposer.Collect(factory);
 
             fontFamilyName = "";
@@ -123,6 +131,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 case nameof(lightweightTextScrollingShapeParameter.Alignment):
                     shouldUpdateAlignment = true;
                     break;
+                case nameof(lightweightTextScrollingShapeParameter.CharacterSpacing):
                 case nameof(lightweightTextScrollingShapeParameter.Text):
                     shouldUpdateLineIndexes = true;
                     break;
@@ -192,7 +201,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 fontWeight: lightweightTextScrollingShapeParameter.IsBold ? FontWeight.Bold : fontWeightOfSelectedFont,
                 fontStyle: lightweightTextScrollingShapeParameter.IsItalic ? FontStyle.Italic : fontStyleOfSelectedFont,
                 fontSize: lightweightTextScrollingShapeParameter.FontSize
-            );
+            ).QueryInterface<IDWriteTextFormat1>();
             disposer.Collect(textFormat);
             textFormat.WordWrapping = (WordWrapping)lightweightTextScrollingShapeParameter.WordWrapping;
             textFormat.TextAlignment = lightweightTextScrollingShapeParameter.TextAlignment;
@@ -210,6 +219,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
             using var textLayout = CreateTextLayout(lightweightTextScrollingShapeParameter.Text);
             // 1行の文字数が分かれば良いのでLineSpacingは不要
+            SetCharacterSpacing(textLayout, lightweightTextScrollingShapeParameter.Text.Length);
 
             int sum = 0;
             lineStartIndexes = [0, .. textLayout.LineMetrics.Select(line => sum += line.Length)];
@@ -316,13 +326,13 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             {
                 TextAlignment.Leading => 0f,
                 TextAlignment.Center => -(float)wordWrappingWidth / 2,
-                TextAlignment.Justified => -(float)wordWrappingWidth / 2,
+                TextAlignment.Justified => -(float)wordWrappingWidth / 2 - lightweightTextScrollingShapeParameter.CharacterSpacing / 2,
                 TextAlignment.Trailing => -(float)wordWrappingWidth,
                 _ => throw new NotImplementedException($"{nameof(TextAlignment)} = {lightweightTextScrollingShapeParameter.TextAlignment}の場合の処理が未実装です。")
             };
             var absLineHeight = Math.Abs(lineHeight);
             textLayout.SetLineSpacing(LineSpacingMethod.Uniform, (float)absLineHeight, (float)(baseLinePerSize * lightweightTextScrollingShapeParameter.FontSize));
-            // SetCharacterSpacing(); を使いたいがIDWriteTextLayout1に対応する方法が不明なので諦め
+            SetCharacterSpacing(textLayout, text.Length);
             dc.DrawTextLayout(new Vector2(x, y), textLayout, brush);
 
             dc.EndDraw();
@@ -330,14 +340,21 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             commandList.Close();//CommandListはEndDraw()の後に必ずClose()を呼んで閉じる必要がある
         }
 
-        IDWriteTextLayout CreateTextLayout(string text)
+        IDWriteTextLayout1 CreateTextLayout(string text)
         {
-            return factory.CreateTextLayout(
-                text: text,
-                textFormat: textFormat,
-                maxWidth: lightweightTextScrollingShapeParameter.WordWrapping == WordWrappingComboBoxEnum.NoWrap ? 0f : (float)wordWrappingWidth,
-                maxHeight: float.MaxValue
-            );
+            float maxWidth
+                = lightweightTextScrollingShapeParameter.WordWrapping == WordWrappingComboBoxEnum.NoWrap
+                ? 0f
+                : lightweightTextScrollingShapeParameter.TextAlignment == TextAlignment.Justified
+                ? (float)wordWrappingWidth + lightweightTextScrollingShapeParameter.CharacterSpacing
+                : (float)wordWrappingWidth;
+            return factory.CreateTextLayout(text, textFormat, maxWidth, maxHeight: float.MaxValue).QueryInterface<IDWriteTextLayout1>();
+        }
+
+        void SetCharacterSpacing(IDWriteTextLayout1 textLayout, int textLength)
+        {
+            var characterSpacing = lightweightTextScrollingShapeParameter.CharacterSpacing;
+            textLayout.SetCharacterSpacing(characterSpacing * TextAlignmentRatio, characterSpacing * (1f - TextAlignmentRatio), 0f, new TextRange(0, textLength));
         }
 
         /// <returns>値が変更された場合は true、それ以外は false。</returns>

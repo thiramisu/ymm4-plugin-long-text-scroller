@@ -56,6 +56,13 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         public float FontSize { get => fontSize; set => Set(ref fontSize, value); }
         float fontSize = 34f;
 
+        [Display(Name = "文字間隔", Description = "文字と文字の間隔")]
+        [TextBoxSlider("F1", "px", -100f, 100f)]
+        [DefaultValue(0f)]
+        [Range(-100_000f, 100_000f)]
+        public float CharacterSpacing { get => characterSpacing; set => Set(ref characterSpacing, value); }
+        float characterSpacing = 0f;
+
         [Display(Name = "折り返し", Description = "テキストの折り返し")]
         [EnumComboBox]
         public WordWrappingComboBoxEnum WordWrapping { get => wordWrapping; set => Set(ref wordWrapping, value); }
