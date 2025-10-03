@@ -27,8 +27,9 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         public Animation LineHeight { get; } = new Animation(34, -100_000, 100_000);
 
         [Display(Name = "表示行数", Description = "表示行数")]
-        [TextBoxSlider("F0", "", 1, 50)]
+        [TextBoxSlider("F0", "", 1, 10)]
         [DefaultValue(3)]
+        [Range(1, 100)]
         public int LineCount { get => lineCount; set => Set(ref lineCount, value); }
         int lineCount = 3;
 
@@ -48,10 +49,11 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         string fontWin32FamilyName = "メイリオ";
 
         [Display(Name = "サイズ", Description = "文字の大きさ")]
-        [TextBoxSlider("F1", "px", 1, 500)]
+        [TextBoxSlider("F1", "px", 1f, 50f)]
         [DefaultValue(34f)]
+        [Range(1f, 100_000f)]
         public float FontSize { get => fontSize; set => Set(ref fontSize, value); }
-        float fontSize = 34;
+        float fontSize = 34f;
 
         [Display(Name = "折り返し", Description = "テキストの折り返し")]
         [EnumComboBox]
