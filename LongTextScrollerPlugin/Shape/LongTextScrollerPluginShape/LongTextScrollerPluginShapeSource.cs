@@ -208,12 +208,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
             shouldUpdateTextAndY = true;
 
-            using var textLayout = factory.CreateTextLayout(
-                text: lightweightTextScrollingShapeParameter.Text,
-                textFormat: textFormat,
-                maxWidth: lightweightTextScrollingShapeParameter.WordWrapping == WordWrappingComboBoxEnum.NoWrap ? 0f : (float)wordWrappingWidth,
-                maxHeight: float.MaxValue
-            );
+            using var textLayout = CreateTextLayout(lightweightTextScrollingShapeParameter.Text);
             // 1行の文字数が分かれば良いのでLineSpacingは不要
 
             int sum = 0;
@@ -317,12 +312,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             dc.BeginDraw();
             dc.Clear(null);
 
-            using var textLayout = factory.CreateTextLayout(
-                text: text,
-                textFormat: textFormat,
-                maxWidth: lightweightTextScrollingShapeParameter.WordWrapping == WordWrappingComboBoxEnum.NoWrap ? 0f : (float)wordWrappingWidth,
-                maxHeight: float.MaxValue
-            );
+            using var textLayout = CreateTextLayout(text);
             var x = AlignmentComboBoxUtil.GetTextAlignment(lightweightTextScrollingShapeParameter.Alignment) switch
             {
                 TextAlignment.Leading => 0f,
@@ -339,6 +329,16 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             dc.EndDraw();
             dc.Target = null;//Targetは必ずnullに戻す。
             commandList.Close();//CommandListはEndDraw()の後に必ずClose()を呼んで閉じる必要がある
+        }
+
+        IDWriteTextLayout CreateTextLayout(string text)
+        {
+            return factory.CreateTextLayout(
+                text: text,
+                textFormat: textFormat,
+                maxWidth: lightweightTextScrollingShapeParameter.WordWrapping == WordWrappingComboBoxEnum.NoWrap ? 0f : (float)wordWrappingWidth,
+                maxHeight: float.MaxValue
+            );
         }
 
         /// <returns>値が変更された場合は true、それ以外は false。</returns>
