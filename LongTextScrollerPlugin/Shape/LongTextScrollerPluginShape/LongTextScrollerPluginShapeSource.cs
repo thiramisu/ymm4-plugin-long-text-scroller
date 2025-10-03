@@ -88,7 +88,10 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             UpdateFontDataIfNeeded();
             UpdateTextFormatIfNeeded();
 
-            shouldUpdateLineIndexes |= SetProperty(ref wordWrappingWidth, lightweightTextScrollingShapeParameter.WordWrappingWidth.GetValue(frame, length, fps));
+            shouldUpdateLineIndexes |= SetProperty(
+                ref wordWrappingWidth,
+                lightweightTextScrollingShapeParameter.WordWrapping == WordWrappingComboBoxEnum.NoWrap ? 0f : lightweightTextScrollingShapeParameter.WordWrappingWidth.GetValue(frame, length, fps)
+            );
             UpdateLineStartIndexesIfNeeded();
 
             shouldUpdateTextAndY |= SetProperty(ref scroll, lightweightTextScrollingShapeParameter.Scroll.GetValue(frame, length, fps));
