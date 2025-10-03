@@ -178,13 +178,14 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         {
             public Animation Scroll { get; } = new Animation(0, -1_000_000, 1_000_000);
             public ScrollMeasurementUnitComboBoxEnum ScrollMeasurementUnit { get; }
-            public Animation LineHeight { get; } = new Animation(34, -100, YMM4Constants.VeryLargeValue);
+            public Animation LineHeight { get; } = new Animation(34, YMM4Constants.VerySmallValue, YMM4Constants.VeryLargeValue);
             public int LineCount { get; }
             public bool ShouldShiftHalfLine { get; }
             public string Text { get; }
             public string FontWin32FamilyName { get; }
             public float FontSize { get; }
 
+            public float CharacterSpacing { get; }
             public WordWrappingComboBoxEnum WordWrapping { get; }
             public Animation WordWrappingWidth { get; } = new Animation(1920, 0, YMM4Constants.VeryLargeValue);
             public AlignmentComboBoxEnum Alignment { get; }
@@ -202,6 +203,8 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 Text = parameter.Text;
                 FontWin32FamilyName = parameter.FontWin32FamilyName;
                 FontSize = parameter.FontSize;
+
+                CharacterSpacing = parameter.CharacterSpacing;
                 WordWrapping = parameter.WordWrapping;
                 WordWrappingWidth.CopyFrom(parameter.WordWrappingWidth);
                 Alignment = parameter.Alignment;
@@ -220,6 +223,8 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 parameter.Text = Text;
                 parameter.FontWin32FamilyName = FontWin32FamilyName;
                 parameter.FontSize = FontSize;
+
+                parameter.CharacterSpacing = CharacterSpacing;
                 parameter.WordWrapping = WordWrapping;
                 parameter.WordWrappingWidth.CopyFrom(WordWrappingWidth);
                 parameter.Alignment = Alignment;
