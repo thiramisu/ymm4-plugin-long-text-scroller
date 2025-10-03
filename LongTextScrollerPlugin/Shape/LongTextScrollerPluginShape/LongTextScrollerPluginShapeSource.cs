@@ -164,7 +164,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         }
         void UpdateTextFormatIfNeeded()
         {
-            if (!shouldUpdateTextFormat && textFormat != null)
+            if (!shouldUpdateTextFormat && textFormat is not null)
             {
                 if (shouldUpdateWordWrapping)
                 {
@@ -190,9 +190,9 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
             shouldUpdateLineIndexes = true;
 
-            if (font == null)
+            if (font is null)
                 throw new InvalidOperationException($"{nameof(font)} is null");
-            if (textFormat != null)
+            if (textFormat is not null)
             {
                 disposer.RemoveAndDispose(ref textFormat);
             }
@@ -209,7 +209,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
         void UpdateLineStartIndexesIfNeeded()
         {
-            if (!shouldUpdateLineIndexes && lineStartIndexes != null)
+            if (!shouldUpdateLineIndexes && lineStartIndexes is not null)
             {
                 return;
             }
@@ -233,7 +233,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
             }
             shouldUpdateTextAndY = false;
 
-            if (lineStartIndexes == null)
+            if (lineStartIndexes is null)
                 throw new InvalidOperationException($"{nameof(lineStartIndexes)}がnullです。");
 
             var absLineHeight = Math.Abs(lineHeight);
@@ -285,13 +285,13 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
         void UpdateBrushIfNeeded()
         {
-            if (!shouldUpdateBrush && brush != null)
+            if (!shouldUpdateBrush && brush is not null)
             {
                 return;
             }
             shouldUpdateBrush = false;
 
-            if (brush != null)
+            if (brush is not null)
             {
                 disposer.RemoveAndDispose(ref brush);
             }
@@ -308,7 +308,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
         void UpdateCommandList()
         {
-            if (brush == null)
+            if (brush is null)
                 throw new InvalidOperationException($"{nameof(brush)}がnullです。");
 
             var dc = devices.DeviceContext;
@@ -360,7 +360,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         /// <returns>値が変更された場合は true、それ以外は false。</returns>
         static bool SetProperty<T>(ref T field, T newValue)
         {
-            if (field == null || !EqualityComparer<T>.Default.Equals(field, newValue))
+            if (field is null || !EqualityComparer<T>.Default.Equals(field, newValue))
             {
                 field = newValue;
                 return true;
