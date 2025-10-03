@@ -1,4 +1,5 @@
-﻿using YukkuriMovieMaker.Plugin.Shape;
+﻿using YukkuriMovieMaker.Plugin;
+using YukkuriMovieMaker.Plugin.Shape;
 using YukkuriMovieMaker.Project;
 
 namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
@@ -30,5 +31,12 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
         {
             return new LongTextScrollerPluginShapeParameter(sharedData);
         }
+
+        public PluginDetailsAttribute Details { get; } = new PluginDetailsAttribute
+        {
+            AuthorName = "oTATo",
+            // 不使用
+            //ContentId = "sm123456"
+        };
     }
 }
