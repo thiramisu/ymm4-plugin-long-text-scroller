@@ -200,6 +200,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
                 fontFamilyName: font.CanonicalFontName,
                 fontWeight: lightweightTextScrollingShapeParameter.IsBold ? Vortice.DirectWrite.FontWeight.Bold : (Vortice.DirectWrite.FontWeight)font.CanonicalFontWeight,
                 fontStyle: lightweightTextScrollingShapeParameter.IsItalic ? Vortice.DirectWrite.FontStyle.Italic : (Vortice.DirectWrite.FontStyle)font.CanonicalFontStyle,
+                fontStretch: (Vortice.DirectWrite.FontStretch)font.CanonicalFontStretch,
                 fontSize: lightweightTextScrollingShapeParameter.FontSize
             ).QueryInterface<IDWriteTextFormat1>();
             disposer.Collect(textFormat);
