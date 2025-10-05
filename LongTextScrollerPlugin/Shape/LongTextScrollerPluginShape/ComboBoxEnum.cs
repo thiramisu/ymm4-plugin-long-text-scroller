@@ -1,4 +1,4 @@
-﻿using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations;
 using Vortice.DirectWrite;
 
 namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape

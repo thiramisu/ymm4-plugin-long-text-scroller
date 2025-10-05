@@ -1,4 +1,4 @@
-﻿using YukkuriMovieMaker.Plugin;
+using YukkuriMovieMaker.Plugin;
 using YukkuriMovieMaker.Plugin.Shape;
 using YukkuriMovieMaker.Project;
 
