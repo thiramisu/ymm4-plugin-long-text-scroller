@@ -110,6 +110,7 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
         public void Dispose()
         {
+            lightweightTextScrollingShapeParameter.PropertyChanged -= OnParameterChanged;
             disposer.DisposeAndClear();
         }
 
@@ -159,7 +160,8 @@ namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 
             font = FontGetter.GetFont(lightweightTextScrollingShapeParameter.FontWin32FamilyName);
 
-            var metrics = FontGetter.GetIDWriteFont(factory, font).Metrics;
+            using var iDWriteFont = FontGetter.GetIDWriteFont(factory, font);
+            var metrics = iDWriteFont.Metrics;
             baseLinePerSize = metrics.Ascent / metrics.DesignUnitsPerEm;
         }
         void UpdateTextFormatIfNeeded()
