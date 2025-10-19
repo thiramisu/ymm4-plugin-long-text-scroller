@@ -43,6 +43,6 @@
 	<!--Releaseビルド後-->
 	<Target Name="PostBuild2" AfterTargets="PostBuildEvent" Condition="'$(Configuration)' == 'Release'">
 		<!-- release.ymme の作成 -->
-		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Compress-Archive -Path @( '$(ProjectDir)Content\LICENSE.txt', '$(ProjectDir)Content\README.txt', '$(TargetPath)' ) -DestinationPath '$(ProjectDir)output.zip' -Force; Rename-Item -Path '$(ProjectDir)output.zip' -NewName 'LongTextScrollerPlugin.ymme' -Force&quot;" />
+		<Exec Command="powershell -NoProfile -ExecutionPolicy Bypass -Command &quot;Compress-Archive -Path @( '$(ProjectDir)Content\LICENSE.txt', '$(ProjectDir)Content\README.txt', '$(TargetPath)' ) -DestinationPath '$(ProjectDir)output.zip' -Force; Rename-Item -Path '$(ProjectDir)output.zip' -NewName '$(MSBuildProjectName).ymme' -Force&quot;" />
 	</Target>
 </Project>
