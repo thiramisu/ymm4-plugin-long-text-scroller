@@ -1,0 +1,109 @@
+<Window
+    x:Class="LongTextScrollerPlugin.PropertyEditor.PluginInfoDialog.PluginInfoDialog"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:local="clr-namespace:LongTextScrollerPlugin.PropertyEditor.PluginInfoDialog"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    Title="{Binding Title}"
+    Width="600"
+    Height="400"
+    d:DataContext="{d:DesignInstance Type={x:Type local:PluginInfoDialogViewModel}}"
+    d:DesignHeight="400"
+    d:DesignWidth="600"
+    ResizeMode="CanResize"
+    WindowStartupLocation="CenterOwner"
+    mc:Ignorable="d">
+    <Window.DataContext>
+        <local:PluginInfoDialogViewModel />
+    </Window.DataContext>
+    <Window.Resources>
+        <Style TargetType="TextBlock">
+            <Setter Property="VerticalAlignment" Value="Center" />
+            <Setter Property="LineHeight" Value="22" />
+            <Setter Property="LineStackingStrategy" Value="BlockLineHeight" />
+            <Setter Property="TextWrapping" Value="Wrap" />
+        </Style>
+    </Window.Resources>
+    <Grid>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+        <Label Grid.Row="0">
+            <TextBlock Margin="0,0,3,0" Text="{Binding Header}" />
+        </Label>
+        <TextBlock Grid.Row="1" Text="{Binding VersionComparingStatus}" />
+        <TextBlock Grid.Row="2">
+            <Hyperlink NavigateUri="{Binding DllDirectory}" RequestNavigate="Hyperlink_RequestNavigate">
+                <TextBlock Text="このプラグインのフォルダを開く" />
+            </Hyperlink>
+        </TextBlock>
+        <ItemsControl
+            Grid.Row="3"
+            Grid.IsSharedSizeScope="True"
+            ItemsSource="{Binding Links}">
+            <ItemsControl.ItemContainerStyle>
+                <Style TargetType="ContentPresenter">
+                    <Setter Property="Height" Value="22" />
+
+                </Style>
+            </ItemsControl.ItemContainerStyle>
+
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="Auto" SharedSizeGroup="LabelColumn" />
+                            <ColumnDefinition Width="*" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBlock
+                            Grid.Column="0"
+                            Margin="0,0,5,0"
+                            VerticalAlignment="Center"
+                            Text="{Binding Label, StringFormat={}- {0}}" />
+                        <TextBlock Grid.Column="1" VerticalAlignment="Center">
+                            <Hyperlink NavigateUri="{Binding Url}" RequestNavigate="Hyperlink_RequestNavigate">
+                                <TextBlock Text="{Binding Url}" />
+                            </Hyperlink>
+                        </TextBlock>
+                    </Grid>
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <TabControl
+            Grid.Row="4"
+            ItemsSource="{Binding FileViewModels}"
+            SelectedItem="{Binding SelectedFile}">
+            <TabControl.ItemTemplate>
+                <DataTemplate>
+                    <TextBlock Text="{Binding Label}" ToolTip="{Binding FileName}" />
+                </DataTemplate>
+            </TabControl.ItemTemplate>
+
+            <TabControl.ContentTemplate>
+                <DataTemplate>
+                    <TextBox
+                        HorizontalScrollBarVisibility="Auto"
+                        IsReadOnly="True"
+                        Text="{Binding FileContent}"
+                        TextWrapping="Wrap"
+                        VerticalScrollBarVisibility="Auto" />
+                </DataTemplate>
+            </TabControl.ContentTemplate>
+        </TabControl>
+        <Grid Grid.Row="5">
+            <Button
+                Width="100"
+                Height="26"
+                HorizontalAlignment="Right"
+                Click="CloseButton_Click"
+                Content="閉じる" />
+        </Grid>
+    </Grid>
+</Window>

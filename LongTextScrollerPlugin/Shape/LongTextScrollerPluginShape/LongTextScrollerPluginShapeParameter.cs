@@ -2,18 +2,32 @@ using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
 using System.Runtime.CompilerServices;
 using System.Windows.Media;
+using LongTextScrollerPlugin.PropertyEditor.PluginInfoButton;
+using LongTextScrollerPlugin.PropertyEditor.PluginInfoDetails;
+using LongTextScrollerPlugin.PropertyEditor.PluginInfoLink;
+using LongTextScrollerPlugin.PropertyEditor.PluginInfoRepo;
 using Vortice.DirectWrite;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Controls;
 using YukkuriMovieMaker.Exo;
 using YukkuriMovieMaker.Player.Video;
+using YukkuriMovieMaker.Plugin;
 using YukkuriMovieMaker.Plugin.Shape;
 using YukkuriMovieMaker.Project;
 
 namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
 {
+    [PluginDetails(AuthorName = "oTATo")]
+    [PluginInfoDetails("長文軽量スクロール")]
+    [PluginInfoLink("配布サイト (GitHub)", "https://github.com/thiramisu/ymm4-plugin-long-text-scroller")]
+    [PluginInfoLink("お問い合わせ (X)", "https://x.com/tiramisu_oTATo")]
+    [PluginInfoRepo("thiramisu", "ymm4-plugin-long-text-scroller")]
     internal class LongTextScrollerPluginShapeParameter(SharedDataStore? sharedData) : ShapeParameterBase(sharedData)
     {
+        [Display]
+        [PluginInfoButton]
+        public static int Dummy { get => default; set { } }
+
         [Display(Name = "スクロール", Description = "スクロールの量")]
         [AnimationSlider("F1", "", -500, 500)]
         public Animation Scroll { get; } = new Animation(0, -1_000_000, 1_000_000);
