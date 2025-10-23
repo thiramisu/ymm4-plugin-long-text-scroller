@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using System.Diagnostics.CodeAnalysis;
 using System.Globalization;
 using System.Reflection;
 using System.Resources;
@@ -17,43 +18,54 @@ public static class EnumExtensions
                          .FirstOrDefault();
         return attr?.ShortName ?? attr?.Name ?? value.ToString();
     }
-    public static object Convert(Enum enumValue)
+    public static string ToLocalizedDisplayString(this Enum value)
     {
-        var memberInfo = enumValue.GetType().GetMember(enumValue.ToString());
-        if (memberInfo.Length > 0)
+        var displayAttr = value.GetType().GetField(value.ToString())?.GetCustomAttribute<DisplayAttribute>();
+        if (displayAttr is not null)
         {
-            var displayAttr = memberInfo[0].GetCustomAttribute<DisplayAttribute>();
-            if (displayAttr != null)
+            if (TryGetLocalizedDisplayStringFromResource(displayAttr, out var localizedDisplayString))
             {
-                // ResourceType が指定されている場合はリソースから取得
-                if (displayAttr.ResourceType != null)
-                {
-                    var resourceManager = new ResourceManager(displayAttr.ResourceType);
-                    var resourceName = displayAttr.Name;
-                    var culture = SettingsBase<YMMSettings>.Default.Language;
+                return localizedDisplayString;
+            }
 
-                    if (!string.IsNullOrEmpty(resourceName))
-                    {
-                        var resourceValue = culture == Language.Default
-                            ? resourceManager.GetString(resourceName)
-                            : resourceManager.GetString(resourceName, new CultureInfo((int)culture));
-                        if (!string.IsNullOrEmpty(resourceValue))
-                        {
-                            return resourceValue;
-                        }
-                    }
-                }
-
-                // ResourceType がない場合、Name プロパティを直接使う
-                if (!string.IsNullOrEmpty(displayAttr.Name))
-                {
-                    return enumValue.GetShortDisplayName();
-                }
+            var displayString = displayAttr.ShortName ?? displayAttr.Name;
+            if (displayString is not null)
+            {
+                return displayString;
             }
         }
 
-        // Display 属性が見つからない場合は enum の名前を返す
-        return enumValue.ToString();
+        // Display 属性からの取得ができない場合、enum の名前を返す
+        return value.ToString();
+    }
 
+    static bool TryGetLocalizedDisplayStringFromResource(DisplayAttribute displayAttr, [MaybeNullWhen(false)] out string value)
+    {
+        value = null;
+
+        var resourceType = displayAttr.ResourceType;
+        if (resourceType is null)
+        {
+            return false;
+        }
+
+        var resourceName = displayAttr.Name;
+        if (resourceName is null)
+        {
+            return false;
+        }
+
+        var resourceManager = new ResourceManager(resourceType);
+        var culture = SettingsBase<YMMSettings>.Default.Language;
+        var resourceValue = culture == Language.Default
+            ? resourceManager.GetString(resourceName)
+            : resourceManager.GetString(resourceName, new CultureInfo((int)culture));
+        if (string.IsNullOrEmpty(resourceValue))
+        {
+            return false;
+        }
+
+        value = resourceValue;
+        return true;
     }
 }

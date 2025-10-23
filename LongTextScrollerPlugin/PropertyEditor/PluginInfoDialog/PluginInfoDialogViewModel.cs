@@ -22,7 +22,7 @@ internal class PluginInfoDialogViewModel : Bindable
     public string AuthorName { get => authorName; set { if (Set(ref authorName, value)) { OnPropertyChanged(nameof(Header)); } } }
     string authorName = string.Empty;
 
-    public string PluginFullName => $"「{pluginName}」{EnumDescriptionConverter.Convert(pluginType)}プラグイン";
+    public string PluginFullName => $"「{pluginName}」{pluginType.ToLocalizedDisplayString()}プラグイン";
     public string Title => $"{PluginFullName}について";
     public string Header => $"{PluginFullName} v{CurrentVersion.Version} {CurrentVersion.Suffix}{(AuthorName == string.Empty ? string.Empty : $" by {AuthorName}")}";
 
