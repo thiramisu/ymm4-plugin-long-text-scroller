@@ -10,14 +10,6 @@ namespace LongTextScrollerPlugin.Utils;
 
 public static class EnumExtensions
 {
-    public static string GetShortDisplayName(this Enum value)
-    {
-        var field = value.GetType().GetField(value.ToString());
-        var attr = field?.GetCustomAttributes(typeof(DisplayAttribute), false)
-                         .Cast<DisplayAttribute>()
-                         .FirstOrDefault();
-        return attr?.ShortName ?? attr?.Name ?? value.ToString();
-    }
     public static string ToLocalizedDisplayString(this Enum value)
     {
         var displayAttr = value.GetType().GetField(value.ToString())?.GetCustomAttribute<DisplayAttribute>();
