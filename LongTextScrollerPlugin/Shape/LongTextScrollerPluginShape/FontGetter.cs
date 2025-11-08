@@ -1,39 +1,34 @@
-using System.Globalization;
 using Vortice.DirectWrite;
 using YukkuriMovieMaker.Settings;
 
-namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape
+namespace LongTextScrollerPlugin.Shape.LongTextScrollerPluginShape;
+
+internal static class FontGetter
 {
-    internal static class FontGetter
+    public static Font GetFont(string targetFontName) => FontSettings.Default.SystemFonts.FindByFontName(targetFontName)
+            ?? FontSettings.Default.CustomFonts.FindByFontName(targetFontName)
+            ?? new Font();
+
+    static Font? FindByFontName(this IEnumerable<Font> fonts, string targetFontName)
     {
-        public static Font GetFont(string targetFontName)
+        foreach (var font in fonts)
         {
-            return FontSettings.Default.SystemFonts.FindByFontName(targetFontName)
-                ?? FontSettings.Default.CustomFonts.FindByFontName(targetFontName)
-                ?? new Font();
-        }
-
-        static Font? FindByFontName(this IEnumerable<Font> fonts, string targetFontName)
-        {
-            foreach (var font in fonts)
+            if (font.FontName == targetFontName)
             {
-                if (font.FontName == targetFontName)
-                {
-                    return font;
-                }
+                return font;
             }
-            return null;
         }
+        return null;
+    }
 
-        public static IDWriteFont GetIDWriteFont(IDWriteFactory factory, Font font)
-        {
-            var collection = factory.GetSystemFontCollection(false);
-            if (!collection.FindFamilyName(font.CanonicalFontName, out int index))
-                throw new Exception($"Win32FamilyName {font.CanonicalFontName} に対応するフォントが見つかりませんでした。");
-            return collection.GetFontFamily(index).GetFirstMatchingFont(
-                 (Vortice.DirectWrite.FontWeight)font.CanonicalFontWeight,
-                 (Vortice.DirectWrite.FontStretch)font.CanonicalFontStretch,
-                 (Vortice.DirectWrite.FontStyle)font.CanonicalFontStyle);
-        }
+    public static IDWriteFont GetIDWriteFont(IDWriteFactory factory, Font font)
+    {
+        var collection = factory.GetSystemFontCollection(false);
+        return collection.FindFamilyName(font.CanonicalFontName, out var index)
+            ? collection.GetFontFamily(index).GetFirstMatchingFont(
+             (Vortice.DirectWrite.FontWeight)font.CanonicalFontWeight,
+             (Vortice.DirectWrite.FontStretch)font.CanonicalFontStretch,
+             (Vortice.DirectWrite.FontStyle)font.CanonicalFontStyle)
+            : throw new Exception($"Win32FamilyName {font.CanonicalFontName} に対応するフォントが見つかりませんでした。");
     }
 }

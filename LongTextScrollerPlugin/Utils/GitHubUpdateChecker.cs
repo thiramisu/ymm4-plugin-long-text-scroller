@@ -18,12 +18,12 @@ public static class GitHubUpdateChecker
     /// <summary>
     /// リポジトリごとのキャッシュ結果
     /// </summary>
-    static readonly ConcurrentDictionary<(string repoOwner, string repoName), VersionCheckResult> _cachedResults = new();
+    static readonly ConcurrentDictionary<(string repoOwner, string repoName), VersionCheckResult> cachedResults = new();
 
     /// <summary>
     /// リポジトリごとの進行中リクエスト
     /// </summary>
-    static readonly ConcurrentDictionary<(string repoOwner, string repoName), Task<VersionCheckResult>> _ongoingRequests = new();
+    static readonly ConcurrentDictionary<(string repoOwner, string repoName), Task<VersionCheckResult>> ongoingRequests = new();
 
     /// <summary>
     /// 指定された GitHub リポジトリの最新リリースを確認します。
@@ -31,19 +31,24 @@ public static class GitHubUpdateChecker
     public static Task<VersionCheckResult> CheckLatestVersionAsync(string repoOwner, string repoName)
     {
         if (string.IsNullOrWhiteSpace(repoOwner))
+        {
             throw new ArgumentException($"{nameof(repoOwner)} が空です。");
+        }
+
         if (string.IsNullOrWhiteSpace(repoName))
+        {
             throw new ArgumentException($"{nameof(repoName)} が空です。");
+        }
 
         // キャッシュがあればそれを返す
         // クライアントごとのAPI呼び出し回数に時間あたりの制限があるので、キャッシュがあれば常にそれを利用
-        if (_cachedResults.TryGetValue((repoOwner, repoName), out var cachedResult))
+        if (cachedResults.TryGetValue((repoOwner, repoName), out var cachedResult))
         {
             return Task.FromResult(cachedResult);
         }
 
         // 進行中のリクエストがあればそれを返し、なければ新しいリクエストを登録してから返す
-        var task = _ongoingRequests.GetOrAdd(
+        var task = ongoingRequests.GetOrAdd(
             (repoOwner, repoName),
             _ => FetchLatestVersionAsync(repoOwner, repoName)
         );
@@ -74,7 +79,7 @@ public static class GitHubUpdateChecker
             };
 
             // 結果をキャッシュに追加
-            _cachedResults[(repoOwner, repoName)] = result;
+            cachedResults[(repoOwner, repoName)] = result;
             return result;
         }
         catch (Exception ex)
@@ -84,7 +89,7 @@ public static class GitHubUpdateChecker
         finally
         {
             // リクエスト完了後は進行中リストから削除
-            _ = _ongoingRequests.Remove((repoOwner, repoName), out _);
+            _ = ongoingRequests.Remove((repoOwner, repoName), out _);
         }
     }
 }
