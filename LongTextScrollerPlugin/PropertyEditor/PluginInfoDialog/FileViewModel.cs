@@ -5,22 +5,22 @@ namespace LongTextScrollerPlugin.PropertyEditor.PluginInfoDialog;
 
 public class FileViewModel : Bindable
 {
-    public string FileName { get => _fileName; set { if (Set(ref _fileName, value)) { OnPropertyChanged(nameof(Label)); } } }
+    public string FileName { get => fileName; set { if (Set(ref fileName, value)) { OnPropertyChanged(nameof(Label)); } } }
     public string? FilePath { get; set; }
-    public bool IsLoaded { get => _isLoaded; set => Set(ref _isLoaded, value); }
+    public bool IsLoaded { get => isLoaded; set => Set(ref isLoaded, value); }
 
-    string _fileContent;
+    string fileContent;
     public string FileContent
     {
-        get => _fileContent;
-        set => Set(ref _fileContent, value);
+        get => fileContent;
+        set => Set(ref fileContent, value);
     }
 
-    readonly string? _label;
-    public string Label => _label ?? FileName;
+    readonly string? label;
+    public string Label => label ?? FileName;
 
-    bool _isLoaded;
-    string _fileName;
+    bool isLoaded;
+    string fileName;
 
     public static FileViewModel Create(string filePath, string? label = null) => new(Path.GetFileName(filePath), filePath, fileContent: "（未読み込み）", label);
     public static FileViewModel CreateErrorFile(string error) => new(fileName: "読み込みエラー", filePath: null, fileContent: error);
@@ -28,10 +28,10 @@ public class FileViewModel : Bindable
     FileViewModel(string fileName, string? filePath, string fileContent, string? label = null)
     {
         FilePath = filePath;
-        _fileName = fileName;
-        _fileContent = fileContent;
-        _label = label;
-        _isLoaded = filePath is null;
+        this.fileName = fileName;
+        this.fileContent = fileContent;
+        this.label = label;
+        isLoaded = filePath is null;
     }
 
     public void LoadContentIfNeeded()

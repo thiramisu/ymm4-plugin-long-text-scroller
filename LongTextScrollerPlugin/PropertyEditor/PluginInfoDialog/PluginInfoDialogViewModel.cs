@@ -1,10 +1,10 @@
+using System.Collections.ObjectModel;
+using System.IO;
+using System.Reflection;
 using LongTextScrollerPlugin.PropertyEditor.PluginInfoFile;
 using LongTextScrollerPlugin.PropertyEditor.PluginInfoLink;
 using LongTextScrollerPlugin.PropertyEditor.PluginInfoRepo;
 using LongTextScrollerPlugin.Utils;
-using System.Collections.ObjectModel;
-using System.IO;
-using System.Reflection;
 using YukkuriMovieMaker.Commons;
 using YukkuriMovieMaker.Plugin.Update;
 

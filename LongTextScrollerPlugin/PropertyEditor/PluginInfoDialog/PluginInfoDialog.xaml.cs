@@ -1,8 +1,8 @@
+using System.Diagnostics;
+using System.Windows;
 using LongTextScrollerPlugin.PropertyEditor.PluginInfoFile;
 using LongTextScrollerPlugin.PropertyEditor.PluginInfoLink;
 using LongTextScrollerPlugin.PropertyEditor.PluginInfoRepo;
-using System.Diagnostics;
-using System.Windows;
 using YukkuriMovieMaker.Plugin.Update;
 
 namespace LongTextScrollerPlugin.PropertyEditor.PluginInfoDialog;
@@ -30,7 +30,8 @@ public partial class PluginInfoDialog : Window
         using (var _ = Process.Start(new ProcessStartInfo(e.Uri.AbsoluteUri)
         {
             UseShellExecute = true
-        })) { }
+        }))
+        { }
 
         e.Handled = true;
     }

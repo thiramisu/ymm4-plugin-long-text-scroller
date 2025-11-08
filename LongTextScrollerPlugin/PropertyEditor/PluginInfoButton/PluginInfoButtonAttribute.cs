@@ -66,8 +66,8 @@ internal class PluginInfoButtonAttribute : PropertyEditorAttribute2
             IPlugin => PluginType.Other,
             _ => throw new Exception($"プラグインタイプの取得に失敗しました。"),
         };
-        var links = ownerType.GetCustomAttributes(typeof(PluginInfoLinkAttribute), false).OfType<PluginInfoLinkAttribute>().ToArray();
-        var files = ownerType.GetCustomAttributes(typeof(PluginInfoFileAttribute), false).OfType<PluginInfoFileAttribute>().ToArray();
+        var links = ownerType.GetCustomAttributes(typeof(PluginInfoLinkAttribute), false).Cast<PluginInfoLinkAttribute>().ToArray();
+        var files = ownerType.GetCustomAttributes(typeof(PluginInfoFileAttribute), false).Cast<PluginInfoFileAttribute>().ToArray();
         var repo = ownerType.GetCustomAttribute<PluginInfoRepoAttribute>();
         var authorName = ownerType.GetCustomAttribute<PluginDetailsAttribute>()?.AuthorName;
         editor.DataContext = new PluginInfoButtonViewModel(pluginName, pluginType, authorName ?? string.Empty, links, files, repo);

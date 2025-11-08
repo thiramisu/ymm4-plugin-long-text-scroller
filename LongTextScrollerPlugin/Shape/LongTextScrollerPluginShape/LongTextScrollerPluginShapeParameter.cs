@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using System.Windows.Media;
 using LongTextScrollerPlugin.PropertyEditor.PluginInfoButton;
 using LongTextScrollerPlugin.PropertyEditor.PluginInfoDetails;
@@ -25,7 +26,9 @@ internal class LongTextScrollerPluginShapeParameter(SharedDataStore? sharedData)
 {
     [Display]
     [PluginInfoButton]
-    public static int Dummy { get => default; set { } }
+    [JsonIgnore]
+    [Obsolete("コントロール生成用ダミープロパティ")]
+    public static bool PluginInfoButtonDummy => false;
 
     [Display(Name = "スクロール", Description = "スクロールの量")]
     [AnimationSlider("F1", "", -500, 500)]
